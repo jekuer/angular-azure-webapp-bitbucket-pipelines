@@ -1,0 +1,67 @@
+image: node:10.15.3
+
+pipelines:
+  branches:
+    master: # copy this part and change the branch name to make it work with different branches. This file uses another "develop" branch as example
+        - step:
+            name: Build it
+            caches:
+                - node
+            script:
+                - npm install
+                - npm install -g @angular/cli
+                - npm run build:ssr # make sure you set this script up in your package.json before. Alternatively, you could use npm run "ng build --prod && npm run ng run your-ng-app-name:server:production && npm run tsc -p server.tsconfig.json"
+            artifacts:
+                - package.json
+                - dist/**
+                - node_modules/**
+        - step:
+            name: Zip it
+            image: atlassian/default-image:2
+            script:
+                - zip -r package-$BITBUCKET_BUILD_NUMBER.zip package.json dist/** node_modules/**
+            artifacts: 
+                - package-*.zip
+        - step:
+            name: Deploy it to Azure
+            script:
+                - pipe: microsoft/azure-web-apps-deploy:1.0.3
+                  variables:
+                    AZURE_APP_ID: $AZURE_APP_ID
+                    AZURE_PASSWORD: $AZURE_PASSWORD
+                    AZURE_TENANT_ID: $AZURE_TENANT_ID
+                    AZURE_RESOURCE_GROUP: 'yourresourcegroupname' # change this to your needs
+                    AZURE_APP_NAME: 'your-azure-angular-webapp' # change this to your needs
+                    ZIP_FILE: '$BITBUCKET_CLONE_DIR/package-$BITBUCKET_BUILD_NUMBER.zip'
+    develop:
+        - step:
+            name: Build it
+            caches:
+                - node
+            script:
+                - npm install
+                - npm install -g @angular/cli
+                - npm run build:ssr-develop # make sure you set this script up in your package.json before. For alternative, compare to master part above.
+            artifacts:
+                - package.json
+                - dist/**
+                - node_modules/**
+        - step:
+            name: Zip it
+            image: atlassian/default-image:2
+            script:
+                - zip -r package-$BITBUCKET_BUILD_NUMBER.zip package.json dist/** node_modules/**
+            artifacts: 
+                - package-*.zip
+        - step:
+            name: Deploy it to Azure
+            script:
+                - pipe: microsoft/azure-web-apps-deploy:1.0.3
+                  variables:
+                    AZURE_APP_ID: $AZURE_APP_ID
+                    AZURE_PASSWORD: $AZURE_PASSWORD
+                    AZURE_TENANT_ID: $AZURE_TENANT_ID
+                    AZURE_RESOURCE_GROUP: 'yourresourcegroupname' # change this to your needs
+                    AZURE_APP_NAME: 'your-azure-angular-webapp' # change this to your needs
+                    ZIP_FILE: '$BITBUCKET_CLONE_DIR/package-$BITBUCKET_BUILD_NUMBER.zip'
+                    SLOT: 'develop' # this makes sure that dev gets deployed to the dev slot of your webapp
