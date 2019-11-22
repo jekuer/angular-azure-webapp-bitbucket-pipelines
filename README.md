@@ -15,9 +15,9 @@ For both, server side (with Node) and client side (with Apache) rendering versio
  6. Note the values the call returns.
  7. Go to your Bitbucket repository, go for "settings" and hit "Repository variables" within the pipelines section.
  8. Create the following variables and use the previously gained values:
- 8.1 AZURE_APP_ID
- 8.2 AZURE_PASSWORD (make this one private)
- 8.3 AZURE_TENANT_ID
+ * AZURE_APP_ID
+ * AZURE_PASSWORD (make this one private)
+ * AZURE_TENANT_ID
  9. Copy the bitbucket-pipelines.yml to your Angular project root.
  10. Adjust the file. 
  11. Push and see the magic happening!
